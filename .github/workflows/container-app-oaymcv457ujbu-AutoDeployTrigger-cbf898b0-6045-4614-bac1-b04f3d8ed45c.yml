@@ -1,0 +1,45 @@
+name: Trigger auto deployment for container-app-oaymcv457ujbu
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - 'docker/**'
+    - '.github/workflows/container-app-oaymcv457ujbu-AutoDeployTrigger-cbf898b0-6045-4614-bac1-b04f3d8ed45c.yml'
+
+  # Allow mannually trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.CONTAINERAPPOAYMCV457UJBU_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.CONTAINERAPPOAYMCV457UJBU_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.CONTAINERAPPOAYMCV457UJBU_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }}/docker 
+          registryUrl: containerregistryoaymcv457ujbu.azurecr.io
+          registryUsername: ${{ secrets.CONTAINERAPPOAYMCV457UJBU_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.CONTAINERAPPOAYMCV457UJBU_REGISTRY_PASSWORD }}
+          containerAppName: container-app-oaymcv457ujbu
+          resourceGroup: valheimgameserver9e96
+          imageToBuild: containerregistryoaymcv457ujbu.azurecr.io/container-app-oaymcv457ujbu:${{ github.sha }}
+          dockerfilePath: Dockerfile
+
+
